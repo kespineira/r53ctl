@@ -61,3 +61,7 @@ Create a tagged release to build Linux, macOS, and Windows archives for `amd64` 
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+## License
+
+MIT License. See [LICENSE](LICENSE).
