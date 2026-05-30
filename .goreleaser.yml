@@ -38,12 +38,78 @@ archives:
 checksum:
   name_template: checksums.txt
 
+nfpms:
+  - id: linux-packages
+    package_name: r53ctl
+    ids:
+      - r53ctl
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: Kevin Espineira
+    homepage: https://github.com/kespineira/r53ctl
+    maintainer: Kevin Espineira <kevin.espineira@gmail.com>
+    description: |-
+      A small Route 53 CLI for hosted zones and basic DNS records.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+
+homebrew_casks:
+  - name: r53ctl
+    ids:
+      - binaries
+    binaries:
+      - r53ctl
+    directory: Casks
+    homepage: https://github.com/kespineira/r53ctl
+    description: A small Route 53 CLI for hosted zones and basic DNS records
+    license: MIT
+    repository:
+      owner: kespineira
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew cask update for r53ctl {{ .Tag }}"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/r53ctl"], sudo: false
+          end
+
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
 changelog:
+  use: github
   sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*?(fix|bug)(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Documentation
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: Maintenance
+      regexp: '^.*?(chore|ci|build|refactor|test)(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: Other changes
+      order: 999
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+
+release:
+  github:
+    owner: kespineira
+    name: r53ctl
+  mode: replace

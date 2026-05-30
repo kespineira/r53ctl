@@ -10,6 +10,22 @@ go install github.com/kespineira/r53ctl/cmd/r53ctl@latest
 
 The project targets Go 1.24 or newer because current AWS SDK for Go v2 releases require it.
 
+## Install from releases
+
+Homebrew:
+
+```sh
+brew install --cask kespineira/tap/r53ctl
+```
+
+Linux packages are attached to each GitHub release as `.deb`, `.rpm`, and `.apk` files.
+
+Shell installer for Linux/macOS:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/kespineira/r53ctl/main/scripts/install.sh | sh
+```
+
 ## Authentication
 
 The CLI uses the standard AWS credential chain: environment variables, shared config, shared credentials, SSO, and instance/task roles. You can also select a profile or assume a role:
@@ -61,6 +77,8 @@ Create a tagged release to build Linux, macOS, and Windows archives for `amd64` 
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+See [docs/releasing.md](docs/releasing.md) for the full release process.
 
 ## License
 
