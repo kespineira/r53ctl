@@ -1,8 +1,69 @@
-# r53ctl
+<p align="center">
+  <a href="https://github.com/kespineira/r53ctl">
+    <img src="docs/assets/logo.svg" alt="r53ctl logo" width="720">
+  </a>
+</p>
 
-A small Route 53 command line tool inspired by `cli53`, focused first on hosted zones and basic record sets.
+<p align="center">
+  <strong>A small, scriptable Amazon Route 53 CLI for hosted zones and DNS records.</strong>
+</p>
 
-## Install from source
+<p align="center">
+  <a href="https://github.com/kespineira/r53ctl/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kespineira/r53ctl/ci.yml?branch=main&label=ci&style=flat-square"></a>
+  <a href="https://github.com/kespineira/r53ctl/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/kespineira/r53ctl?style=flat-square"></a>
+  <a href="https://pkg.go.dev/github.com/kespineira/r53ctl"><img alt="Go Reference" src="https://pkg.go.dev/badge/github.com/kespineira/r53ctl.svg"></a>
+  <a href="https://goreportcard.com/report/github.com/kespineira/r53ctl"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/kespineira/r53ctl?style=flat-square"></a>
+  <a href="https://github.com/kespineira/r53ctl/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/kespineira/r53ctl?style=flat-square"></a>
+  <a href="https://github.com/kespineira/r53ctl/releases"><img alt="Platforms" src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-2E7D32?style=flat-square"></a>
+</p>
+
+`r53ctl` is inspired by [`cli53`](https://github.com/barnybug/cli53), but intentionally starts smaller: list and manage hosted zones, upsert/delete basic record sets, and export records in JSON or BIND-style text.
+
+## Contents
+
+- [Why r53ctl?](#why-r53ctl)
+- [Install](#install)
+- [Authentication](#authentication)
+- [Quick start](#quick-start)
+- [Commands](#commands)
+- [Supported records](#supported-records)
+- [Release channels](#release-channels)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
+
+## Why r53ctl?
+
+- **Small surface area**: focused on Route 53 hosted zones and basic DNS records.
+- **Automation-friendly**: JSON output, explicit destructive operations, and predictable exit codes.
+- **Cross-platform**: Linux, macOS, and Windows builds for `amd64` and `arm64`.
+- **Native AWS auth**: uses the standard AWS credential chain, profiles, and optional role assumption.
+- **Release-ready**: GitHub Releases, checksums, Linux packages, and a Homebrew cask.
+
+## Install
+
+### Homebrew
+
+```sh
+brew install --cask kespineira/tap/r53ctl
+```
+
+### Install script
+
+Linux and macOS:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/kespineira/r53ctl/main/scripts/install.sh | sh
+```
+
+Install a specific version:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/kespineira/r53ctl/main/scripts/install.sh | R53CTL_VERSION=v0.1.0 sh
+```
+
+### Go install
 
 ```sh
 go install github.com/kespineira/r53ctl/cmd/r53ctl@latest
@@ -10,75 +71,147 @@ go install github.com/kespineira/r53ctl/cmd/r53ctl@latest
 
 The project targets Go 1.26.3 or newer.
 
-## Install from releases
+### Download artifacts
 
-Homebrew:
+Every release publishes:
 
-```sh
-brew install --cask kespineira/tap/r53ctl
-```
+- `.tar.gz` archives for Linux and macOS
+- `.zip` archives for Windows
+- `.deb`, `.rpm`, and `.apk` Linux packages
+- `checksums.txt`
 
-Linux packages are attached to each GitHub release as `.deb`, `.rpm`, and `.apk` files.
-
-Shell installer for Linux/macOS:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/kespineira/r53ctl/main/scripts/install.sh | sh
-```
+See <https://github.com/kespineira/r53ctl/releases>.
 
 ## Authentication
 
-The CLI uses the standard AWS credential chain: environment variables, shared config, shared credentials, SSO, and instance/task roles. You can also select a profile or assume a role:
+`r53ctl` uses the AWS SDK credential chain:
+
+- environment variables such as `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`
+- shared config and credentials files
+- AWS SSO profiles
+- instance or task roles
+
+Select a profile or assume a role:
 
 ```sh
 r53ctl --profile prod zones list
 r53ctl --profile tooling --role-arn arn:aws:iam::123456789012:role/dns-admin zones list
 ```
 
-## Commands
+Use a custom endpoint for local testing:
+
+```sh
+r53ctl --endpoint-url http://localhost:4566 zones list
+```
+
+## Quick start
+
+List hosted zones:
 
 ```sh
 r53ctl zones list
-r53ctl zones create example.com --comment "managed by r53ctl"
-r53ctl zones delete Z1234567890 --yes
+```
 
-r53ctl records list example.com
-r53ctl records list example.com --name www.example.com --type A
-r53ctl records upsert example.com --name www.example.com --type A --ttl 300 --value 192.0.2.10
-r53ctl records delete example.com --name www.example.com --type A --yes
+Create a zone:
+
+```sh
+r53ctl zones create example.com --comment "managed by r53ctl"
+```
+
+Upsert an `A` record:
+
+```sh
+r53ctl records upsert example.com \
+  --name www.example.com \
+  --type A \
+  --ttl 300 \
+  --value 192.0.2.10
+```
+
+Export records:
+
+```sh
 r53ctl records export example.com --format bind
 r53ctl records export example.com --format json
 ```
 
-Use `--output json` for machine-readable command output:
+Use JSON output for scripts:
 
 ```sh
-r53ctl --output json zones list
+r53ctl --output json records list example.com --type A
 ```
 
-## MVP scope
+## Commands
 
-Supported record upserts are `A`, `AAAA`, `CAA`, `CNAME`, `MX`, `NS`, `SRV`, and `TXT`.
+```text
+r53ctl zones list
+r53ctl zones create <domain> [--comment <text>]
+r53ctl zones delete <zone-id-or-name> --yes
 
-This first version deliberately does not implement BIND import, alias upserts, private hosted zone creation, reusable delegation sets, or Route 53 routing policies such as weighted, failover, geolocation, and latency records.
-
-## Development
-
-```sh
-go mod tidy
-go test ./...
-go vet ./...
-goreleaser check
+r53ctl records list <zone-id-or-name> [--name <fqdn>] [--type <type>]
+r53ctl records upsert <zone-id-or-name> --name <fqdn> --type <type> --ttl <seconds> --value <value>
+r53ctl records delete <zone-id-or-name> --name <fqdn> --type <type> --yes
+r53ctl records export <zone-id-or-name> --format bind|json
 ```
 
-Create a tagged release to build Linux, macOS, and Windows archives for `amd64` and `arm64`:
+Global flags:
+
+```text
+--profile <name>       AWS shared config profile
+--region <region>      AWS region for SDK configuration
+--role-arn <arn>       Role ARN to assume before calling Route 53
+--endpoint-url <url>   Custom Route 53 endpoint URL
+--output table|json    Output format
+```
+
+## Supported records
+
+Record upserts currently support:
+
+| Type | Notes |
+| --- | --- |
+| `A` | IPv4 addresses |
+| `AAAA` | IPv6 addresses |
+| `CAA` | Certificate authority authorization records |
+| `CNAME` | Canonical names |
+| `MX` | Mail exchange values in `<priority> <exchange>` format |
+| `NS` | Name server records |
+| `SRV` | Service records in `<priority> <weight> <port> <target>` format |
+| `TXT` | Values are quoted automatically when needed |
+
+`records list` can filter any Route 53 record type returned by AWS, including records that `r53ctl` does not yet upsert.
+
+## Release channels
+
+Releases are built with GoReleaser and GitHub Actions.
 
 ```sh
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-See [docs/releasing.md](docs/releasing.md) for the full release process.
+The release workflow builds multi-platform archives, Linux packages, checksums, release notes, and the Homebrew cask. See [docs/releasing.md](docs/releasing.md).
+
+## Roadmap
+
+- BIND zone file import
+- Alias record upserts
+- Private hosted zone creation
+- Route 53 routing policies: weighted, failover, geolocation, and latency
+- Safer diff and dry-run workflows for bulk changes
+
+## Contributing
+
+Issues and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, test commands, and release expectations.
+
+## Security
+
+Please do not report security issues in public issues. See [SECURITY.md](SECURITY.md).
+
+## Acknowledgments
+
+- Inspired by [`barnybug/cli53`](https://github.com/barnybug/cli53).
+- Built on the [AWS SDK for Go v2](https://github.com/aws/aws-sdk-go-v2), [Cobra](https://github.com/spf13/cobra), and [GoReleaser](https://goreleaser.com/).
 
 ## License
 

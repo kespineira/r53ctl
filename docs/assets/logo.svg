@@ -1,0 +1,23 @@
+<svg width="960" height="300" viewBox="0 0 960 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">r53ctl logo</title>
+  <desc id="desc">A command line prompt connected to DNS nodes around the r53ctl wordmark.</desc>
+  <rect width="960" height="300" rx="36" fill="#0B1020"/>
+  <path d="M88 94C88 75.222 103.222 60 122 60H316C334.778 60 350 75.222 350 94V206C350 224.778 334.778 240 316 240H122C103.222 240 88 224.778 88 206V94Z" fill="#101A33" stroke="#2A3B63" stroke-width="4"/>
+  <circle cx="124" cy="94" r="8" fill="#FF6B6B"/>
+  <circle cx="150" cy="94" r="8" fill="#FFD166"/>
+  <circle cx="176" cy="94" r="8" fill="#06D6A0"/>
+  <path d="M125 148L166 174L125 200" stroke="#8BE9FD" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M195 202H288" stroke="#E6EDF7" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="490" cy="98" r="24" fill="#22D3EE"/>
+  <circle cx="590" cy="72" r="14" fill="#34D399"/>
+  <circle cx="648" cy="134" r="16" fill="#F59E0B"/>
+  <circle cx="562" cy="178" r="13" fill="#A78BFA"/>
+  <circle cx="712" cy="82" r="12" fill="#FB7185"/>
+  <path d="M511 92L576 76" stroke="#31496F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M506 111L549 166" stroke="#31496F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M603 83L636 121" stroke="#31496F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M660 124L701 91" stroke="#31496F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M575 172L635 141" stroke="#31496F" stroke-width="6" stroke-linecap="round"/>
+  <text x="408" y="224" fill="#E6EDF7" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="82" font-weight="800" letter-spacing="0">r53ctl</text>
+  <text x="412" y="260" fill="#8BA4C6" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" letter-spacing="0">Route 53 from the terminal</text>
+</svg>

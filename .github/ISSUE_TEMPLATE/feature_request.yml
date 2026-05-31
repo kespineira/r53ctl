@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest a capability or improvement for r53ctl.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and why is the current behavior not enough?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should r53ctl do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other commands, tools, or workflows you tried.
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example CLI usage
+      description: Sketch the command you would expect to run.
+      placeholder: |
+        r53ctl ...
