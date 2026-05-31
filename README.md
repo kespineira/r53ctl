@@ -17,7 +17,7 @@
   <a href="https://github.com/kespineira/r53ctl/releases"><img alt="Platforms" src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-2E7D32?style=flat-square"></a>
 </p>
 
-`r53ctl` is inspired by [`cli53`](https://github.com/barnybug/cli53), but intentionally starts smaller: list and manage hosted zones, upsert/delete basic record sets, and export records in JSON or BIND-style text.
+`r53ctl` is intentionally small: list and manage hosted zones, upsert/delete basic record sets, and export records in JSON or BIND-style text.
 
 ## Contents
 
@@ -208,10 +208,11 @@ Issues and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.
 
 Please do not report security issues in public issues. See [SECURITY.md](SECURITY.md).
 
-## Acknowledgments
+## Built with
 
-- Inspired by [`barnybug/cli53`](https://github.com/barnybug/cli53).
-- Built on the [AWS SDK for Go v2](https://github.com/aws/aws-sdk-go-v2), [Cobra](https://github.com/spf13/cobra), and [GoReleaser](https://goreleaser.com/).
+- [AWS SDK for Go v2](https://github.com/aws/aws-sdk-go-v2)
+- [Cobra](https://github.com/spf13/cobra)
+- [GoReleaser](https://goreleaser.com/)
 
 ## License
 
