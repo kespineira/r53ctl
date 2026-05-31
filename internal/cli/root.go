@@ -67,6 +67,7 @@ func newRootCommand(version string, out io.Writer, errOut io.Writer, factory Ser
 
 	cmd.AddCommand(newZonesCommand(a))
 	cmd.AddCommand(newRecordsCommand(a))
+	cmd.AddCommand(newConfigCommand(a))
 	return cmd
 }
 
