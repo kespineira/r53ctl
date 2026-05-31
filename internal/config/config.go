@@ -19,11 +19,9 @@ type AWSOptions struct {
 
 func LoadAWS(ctx context.Context, opts AWSOptions) (aws.Config, error) {
 	loadOptions := []func(*awsconfig.LoadOptions) error{}
-	region := opts.Region
-	if region == "" {
-		region = DefaultRegion
+	if opts.Region != "" {
+		loadOptions = append(loadOptions, awsconfig.WithRegion(opts.Region))
 	}
-	loadOptions = append(loadOptions, awsconfig.WithRegion(region))
 	if opts.Profile != "" {
 		loadOptions = append(loadOptions, awsconfig.WithSharedConfigProfile(opts.Profile))
 	}
