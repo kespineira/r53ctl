@@ -12,12 +12,12 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6.4.0
         with:
-          go-version: "1.24.x"
+          go-version: "1.26.x"
           cache: true
       - name: Validate Homebrew tap token
         env:
@@ -27,7 +27,7 @@ jobs:
             echo "::error::HOMEBREW_TAP_TOKEN is required to publish the Homebrew cask to kespineira/homebrew-tap."
             exit 1
           fi
-      - uses: goreleaser/goreleaser-action@v6
+      - uses: goreleaser/goreleaser-action@v7.2.2
         with:
           distribution: goreleaser
           version: "~> v2"

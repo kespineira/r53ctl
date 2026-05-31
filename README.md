@@ -8,7 +8,7 @@ A small Route 53 command line tool inspired by `cli53`, focused first on hosted 
 go install github.com/kespineira/r53ctl/cmd/r53ctl@latest
 ```
 
-The project targets Go 1.24 or newer because current AWS SDK for Go v2 releases require it.
+The project targets Go 1.26.3 or newer.
 
 ## Install from releases
 
