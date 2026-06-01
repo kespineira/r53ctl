@@ -98,10 +98,11 @@ func NormalizeRecordValues(recordType string, values []string) ([]string, error)
 			}
 			normalized = append(normalized, value)
 		case "CAA":
-			if err := validateCAA(value); err != nil {
+			normalizedValue, err := normalizeCAA(value)
+			if err != nil {
 				return nil, err
 			}
-			normalized = append(normalized, value)
+			normalized = append(normalized, normalizedValue)
 		case "TXT":
 			normalized = append(normalized, quoteTXT(value))
 		}
@@ -142,16 +143,16 @@ func normalizeSRV(value string) (string, error) {
 	return strings.Join([]string{parts[0], parts[1], parts[2], target}, " "), nil
 }
 
-func validateCAA(value string) error {
+func normalizeCAA(value string) (string, error) {
 	parts := strings.Fields(value)
 	if len(parts) < 3 {
-		return fmt.Errorf("CAA record value %q must be '<flag> <tag> <value>'", value)
+		return "", fmt.Errorf("CAA record value %q must be '<flag> <tag> <value>'", value)
 	}
-	flag, err := strconv.Atoi(parts[0])
-	if err != nil || flag < 0 || flag > 255 {
-		return fmt.Errorf("CAA flag %q must be an integer between 0 and 255", parts[0])
+	if flag, err := strconv.Atoi(parts[0]); err != nil || flag < 0 || flag > 255 {
+		return "", fmt.Errorf("CAA flag %q must be an integer between 0 and 255", parts[0])
 	}
-	return nil
+	caaValue := strings.Join(parts[2:], " ")
+	return parts[0] + " " + parts[1] + " " + quoteTXT(caaValue), nil
 }
 
 func quoteTXT(value string) string {

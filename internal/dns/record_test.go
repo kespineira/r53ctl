@@ -57,6 +57,28 @@ func TestNormalizeRecordValuesRejectsInvalidARecord(t *testing.T) {
 	}
 }
 
+func TestNormalizeRecordValuesQuotesCAA(t *testing.T) {
+	got, err := NormalizeRecordValues("CAA", []string{"0 issue letsencrypt.org"})
+	if err != nil {
+		t.Fatalf("NormalizeRecordValues returned error: %v", err)
+	}
+	want := []string{`0 issue "letsencrypt.org"`}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("NormalizeRecordValues() = %#v, want %#v", got, want)
+	}
+}
+
+func TestNormalizeRecordValuesKeepsQuotedCAA(t *testing.T) {
+	got, err := NormalizeRecordValues("CAA", []string{`0 issue "letsencrypt.org"`})
+	if err != nil {
+		t.Fatalf("NormalizeRecordValues returned error: %v", err)
+	}
+	want := []string{`0 issue "letsencrypt.org"`}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("NormalizeRecordValues() = %#v, want %#v", got, want)
+	}
+}
+
 func TestNormalizeFilterTypeAllowsReadOnlyTypes(t *testing.T) {
 	got, err := NormalizeFilterType("soa")
 	if err != nil {
