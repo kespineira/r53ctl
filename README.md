@@ -104,6 +104,38 @@ Use a custom endpoint for local testing:
 r53ctl --endpoint-url http://localhost:4566 zones list
 ```
 
+## Configuration
+
+Persist default `profile`, `region`, and `output` so you don't repeat flags.
+`r53ctl` stores them in `$XDG_CONFIG_HOME/r53ctl/config.json` (default
+`~/.config/r53ctl/config.json`; Windows uses the OS config directory). Override
+the location with `--config <path>`.
+
+```sh
+r53ctl config set profile Domains
+r53ctl config set region eu-west-1
+r53ctl config set output json
+r53ctl config view
+r53ctl config unset region
+r53ctl config path
+```
+
+After setting a default profile, plain commands use it automatically:
+
+```sh
+r53ctl zones list                    # uses the saved profile
+r53ctl --profile prod zones list     # the flag overrides the saved profile
+```
+
+Precedence, highest first:
+
+1. Explicit command-line flag (`--profile`, `--region`, `--output`).
+2. Environment variable (`AWS_PROFILE`, `AWS_REGION` / `AWS_DEFAULT_REGION`).
+3. `config.json` value.
+4. Built-in default (`output` → `table`, `region` → `us-east-1`, profile from the AWS credential chain).
+
+If the config file is hand-edited into invalid JSON, `r53ctl` reports a parse error naming the path; fix or delete the file to recover.
+
 ## Quick start
 
 List hosted zones:
@@ -152,6 +184,12 @@ r53ctl records list <zone-id-or-name> [--name <fqdn>] [--type <type>]
 r53ctl records upsert <zone-id-or-name> --name <fqdn> --type <type> --ttl <seconds> --value <value>
 r53ctl records delete <zone-id-or-name> --name <fqdn> --type <type> --yes
 r53ctl records export <zone-id-or-name> --format bind|json
+
+r53ctl config view
+r53ctl config get <key>
+r53ctl config set <key> <value>
+r53ctl config unset <key>
+r53ctl config path
 ```
 
 Global flags:
@@ -162,6 +200,7 @@ Global flags:
 --role-arn <arn>       Role ARN to assume before calling Route 53
 --endpoint-url <url>   Custom Route 53 endpoint URL
 --output table|json    Output format
+--config <path>        Path to r53ctl config file
 ```
 
 ## Supported records
