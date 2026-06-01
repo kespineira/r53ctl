@@ -43,6 +43,9 @@ func newConfigViewCommand(a *app) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if !settings.ValidOutput(a.awsFlags.Output) {
+				return fmt.Errorf("unsupported output format %q", a.awsFlags.Output)
+			}
 			if a.awsFlags.Output == "json" {
 				return output.JSON(a.out, configView{
 					Path:    path,

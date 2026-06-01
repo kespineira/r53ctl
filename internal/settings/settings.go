@@ -20,6 +20,11 @@ type Settings struct {
 // Keys lists the valid configuration keys, in display order.
 var Keys = []string{"profile", "region", "output"}
 
+// ValidOutput reports whether value is a supported output format.
+func ValidOutput(value string) bool {
+	return value == "table" || value == "json"
+}
+
 // DefaultPath returns the config file path, honoring XDG_CONFIG_HOME.
 func DefaultPath() (string, error) {
 	if dir := os.Getenv("XDG_CONFIG_HOME"); dir != "" {
@@ -87,7 +92,7 @@ func (s *Settings) Set(key, value string) error {
 		}
 		s.Region = value
 	case "output":
-		if value != "table" && value != "json" {
+		if !ValidOutput(value) {
 			return fmt.Errorf("invalid output %q: must be table or json", value)
 		}
 		s.Output = value

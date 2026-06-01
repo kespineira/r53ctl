@@ -134,6 +134,8 @@ Precedence, highest first:
 3. `config.json` value.
 4. Built-in default (`output` → `table`, `region` → `us-east-1`, profile from the AWS credential chain).
 
+If the config file is hand-edited into invalid JSON, `r53ctl` reports a parse error naming the path; fix or delete the file to recover.
+
 ## Quick start
 
 List hosted zones:

@@ -72,6 +72,43 @@ func TestFlagOverridesConfigProfile(t *testing.T) {
 	}
 }
 
+func TestConfigOutputAppliedAsDefault(t *testing.T) {
+	cfg := filepath.Join(t.TempDir(), "config.json")
+	if err := settings.Save(cfg, settings.Settings{Output: "json"}); err != nil {
+		t.Fatal(err)
+	}
+
+	var captured AWSFlags
+	cmd := newRootCommand("test", io.Discard, io.Discard, captureFactory(&captured))
+	cmd.SetArgs([]string{"--config", cfg, "zones", "list"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+	if captured.Output != "json" {
+		t.Fatalf("output = %q, want json", captured.Output)
+	}
+}
+
+func TestEnvOverridesConfigRegion(t *testing.T) {
+	cfg := filepath.Join(t.TempDir(), "config.json")
+	if err := settings.Save(cfg, settings.Settings{Region: "eu-west-1"}); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("AWS_REGION", "us-east-2")
+	t.Setenv("AWS_DEFAULT_REGION", "")
+
+	var captured AWSFlags
+	cmd := newRootCommand("test", io.Discard, io.Discard, captureFactory(&captured))
+	cmd.SetArgs([]string{"--config", cfg, "zones", "list"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+	// Config region must NOT be applied; the SDK reads AWS_REGION itself.
+	if captured.Region != "" {
+		t.Fatalf("region = %q, want empty (env should win, config not applied)", captured.Region)
+	}
+}
+
 func TestEnvOverridesConfigProfile(t *testing.T) {
 	cfg := filepath.Join(t.TempDir(), "config.json")
 	if err := settings.Save(cfg, settings.Settings{Profile: "Domains"}); err != nil {
