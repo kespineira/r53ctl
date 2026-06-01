@@ -31,6 +31,27 @@ func captureFactory(captured *AWSFlags) ServiceFactory {
 	}
 }
 
+// TestExecuteContextReachesServiceFactory guards the contract that the command
+// execution context flows to the service factory, so a cancelled context
+// (e.g. from a SIGINT-bound context in main) propagates to AWS calls.
+func TestExecuteContextReachesServiceFactory(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	var gotErr error
+	factory := func(c context.Context, _ AWSFlags) (r53.Service, error) {
+		gotErr = c.Err()
+		return &fakeService{}, nil
+	}
+	cmd := newRootCommand("test", io.Discard, io.Discard, factory)
+	cmd.SetArgs([]string{"--config", filepath.Join(t.TempDir(), "config.json"), "zones", "list"})
+	_ = cmd.ExecuteContext(ctx)
+
+	if gotErr == nil {
+		t.Fatal("service factory did not receive the execution context; cancellation will not propagate")
+	}
+}
+
 func TestConfigProfileAppliedAsDefault(t *testing.T) {
 	cfg := filepath.Join(t.TempDir(), "config.json")
 	if err := settings.Save(cfg, settings.Settings{Profile: "Domains", Region: "eu-west-1"}); err != nil {
