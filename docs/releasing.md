@@ -9,6 +9,10 @@ The release workflow needs two tokens:
 - `GITHUB_TOKEN`: provided automatically by GitHub Actions for publishing the GitHub Release.
 - `HOMEBREW_TAP_TOKEN`: repository secret with write access to `kespineira/homebrew-tap`.
 
+Artifact signing uses keyless cosign through the workflow's `id-token: write`
+permission and Sigstore's public infrastructure, so it needs no additional
+secret or key to manage.
+
 Use a dedicated fine-grained personal access token, not the token from `gh auth token`.
 
 Recommended token settings:
@@ -57,7 +61,7 @@ The `Release` workflow will:
 - build `r53ctl` for Linux, macOS, and Windows on `amd64` and `arm64`;
 - publish `.tar.gz` archives for Linux/macOS and `.zip` archives for Windows;
 - publish Linux `.deb`, `.rpm`, and `.apk` packages;
-- upload `checksums.txt`;
+- upload `checksums.txt` and sign it with cosign (keyless via GitHub OIDC), publishing `checksums.txt.sig` and `checksums.txt.pem`;
 - generate grouped release notes from commits;
 - update the Homebrew cask in `kespineira/homebrew-tap`.
 
