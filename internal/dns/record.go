@@ -152,14 +152,33 @@ func normalizeCAA(value string) (string, error) {
 		return "", fmt.Errorf("CAA flag %q must be an integer between 0 and 255", parts[0])
 	}
 	caaValue := strings.Join(parts[2:], " ")
-	return parts[0] + " " + parts[1] + " " + quoteTXT(caaValue), nil
+	return parts[0] + " " + parts[1] + " " + quoteString(caaValue), nil
 }
 
-func quoteTXT(value string) string {
-	if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
+// quoteString wraps a single value in double quotes, escaping backslashes and
+// quotes. A value already wrapped in quotes is returned unchanged.
+func quoteString(value string) string {
+	if len(value) >= 2 && strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`) {
 		return value
 	}
 	value = strings.ReplaceAll(value, `\`, `\\`)
 	value = strings.ReplaceAll(value, `"`, `\"`)
 	return `"` + value + `"`
+}
+
+// quoteTXT formats a TXT value as one or more quoted character-strings. DNS
+// limits each character-string to 255 bytes, so longer values are split into
+// 255-byte chunks joined by spaces. A pre-quoted value is returned unchanged.
+func quoteTXT(value string) string {
+	if len(value) >= 2 && strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`) {
+		return value
+	}
+	const maxChunk = 255
+	chunks := make([]string, 0, len(value)/maxChunk+1)
+	for len(value) > maxChunk {
+		chunks = append(chunks, quoteString(value[:maxChunk]))
+		value = value[maxChunk:]
+	}
+	chunks = append(chunks, quoteString(value))
+	return strings.Join(chunks, " ")
 }

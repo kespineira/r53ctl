@@ -2,6 +2,7 @@ package dns
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -65,6 +66,21 @@ func TestNormalizeRecordValuesQuotesCAA(t *testing.T) {
 	want := []string{`0 issue "letsencrypt.org"`}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("NormalizeRecordValues() = %#v, want %#v", got, want)
+	}
+}
+
+func TestNormalizeRecordValuesChunksLongTXT(t *testing.T) {
+	long := strings.Repeat("a", 300)
+	got, err := NormalizeRecordValues("TXT", []string{long})
+	if err != nil {
+		t.Fatalf("NormalizeRecordValues returned error: %v", err)
+	}
+	if len(got) != 1 {
+		t.Fatalf("expected 1 RDATA value, got %d", len(got))
+	}
+	want := `"` + strings.Repeat("a", 255) + `" "` + strings.Repeat("a", 45) + `"`
+	if got[0] != want {
+		t.Fatalf("NormalizeRecordValues() = %q, want %q", got[0], want)
 	}
 }
 
