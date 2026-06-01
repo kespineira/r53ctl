@@ -95,6 +95,18 @@ func TestNormalizeRecordValuesKeepsQuotedCAA(t *testing.T) {
 	}
 }
 
+func TestNormalizeRecordValuesRejectsOutOfRangeMX(t *testing.T) {
+	if _, err := NormalizeRecordValues("MX", []string{"70000 mail.example.com"}); err == nil {
+		t.Fatal("expected error for MX priority out of range")
+	}
+}
+
+func TestNormalizeRecordValuesRejectsOutOfRangeSRV(t *testing.T) {
+	if _, err := NormalizeRecordValues("SRV", []string{"10 5 70000 sip.example.com"}); err == nil {
+		t.Fatal("expected error for SRV port out of range")
+	}
+}
+
 func TestNormalizeFilterTypeAllowsReadOnlyTypes(t *testing.T) {
 	got, err := NormalizeFilterType("soa")
 	if err != nil {

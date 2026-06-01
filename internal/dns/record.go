@@ -116,8 +116,8 @@ func normalizeMX(value string) (string, error) {
 	if len(parts) != 2 {
 		return "", fmt.Errorf("MX record value %q must be '<priority> <exchange>'", value)
 	}
-	if _, err := strconv.Atoi(parts[0]); err != nil {
-		return "", fmt.Errorf("MX priority %q is not an integer", parts[0])
+	if err := validateUint16("MX priority", parts[0]); err != nil {
+		return "", err
 	}
 	exchange, err := NormalizeName(parts[1])
 	if err != nil {
@@ -132,8 +132,8 @@ func normalizeSRV(value string) (string, error) {
 		return "", fmt.Errorf("SRV record value %q must be '<priority> <weight> <port> <target>'", value)
 	}
 	for i, label := range []string{"priority", "weight", "port"} {
-		if _, err := strconv.Atoi(parts[i]); err != nil {
-			return "", fmt.Errorf("SRV %s %q is not an integer", label, parts[i])
+		if err := validateUint16("SRV "+label, parts[i]); err != nil {
+			return "", err
 		}
 	}
 	target, err := NormalizeName(parts[3])
@@ -141,6 +141,14 @@ func normalizeSRV(value string) (string, error) {
 		return "", fmt.Errorf("SRV target %q is invalid: %w", parts[3], err)
 	}
 	return strings.Join([]string{parts[0], parts[1], parts[2], target}, " "), nil
+}
+
+func validateUint16(label, value string) error {
+	n, err := strconv.Atoi(value)
+	if err != nil || n < 0 || n > 65535 {
+		return fmt.Errorf("%s %q must be an integer between 0 and 65535", label, value)
+	}
+	return nil
 }
 
 func normalizeCAA(value string) (string, error) {
