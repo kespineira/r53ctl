@@ -106,6 +106,16 @@ func (c *Client) ListRecords(ctx context.Context, zoneRef string, filters Record
 	}
 
 	input := &awsroute53.ListResourceRecordSetsInput{HostedZoneId: aws.String(zoneID)}
+	// When filtering by an exact name, ask Route 53 to start listing at that
+	// name. Results are sorted with identical names grouped together, so we can
+	// stop as soon as we move past the filtered name instead of scanning the
+	// whole zone.
+	if filters.Name != "" {
+		input.StartRecordName = aws.String(filters.Name)
+		if filters.Type != "" {
+			input.StartRecordType = types.RRType(filters.Type)
+		}
+	}
 	paginator := awsroute53.NewListResourceRecordSetsPaginator(c.api, input)
 
 	records := []domain.RecordSet{}
@@ -117,7 +127,7 @@ func (c *Client) ListRecords(ctx context.Context, zoneRef string, filters Record
 		for _, record := range page.ResourceRecordSets {
 			converted := convertRecordSet(record)
 			if filters.Name != "" && converted.Name != filters.Name {
-				continue
+				return records, nil
 			}
 			if filters.Type != "" && converted.Type != filters.Type {
 				continue
@@ -198,7 +208,11 @@ func (c *Client) DeleteRecord(ctx context.Context, zoneRef string, name string, 
 }
 
 func (c *Client) findAWSRecordSets(ctx context.Context, zoneID string, name string, recordType string) ([]types.ResourceRecordSet, error) {
-	input := &awsroute53.ListResourceRecordSetsInput{HostedZoneId: aws.String(zoneID)}
+	input := &awsroute53.ListResourceRecordSetsInput{
+		HostedZoneId:    aws.String(zoneID),
+		StartRecordName: aws.String(name),
+		StartRecordType: types.RRType(recordType),
+	}
 	paginator := awsroute53.NewListResourceRecordSetsPaginator(c.api, input)
 	matches := []types.ResourceRecordSet{}
 	for paginator.HasMorePages() {
@@ -207,7 +221,10 @@ func (c *Client) findAWSRecordSets(ctx context.Context, zoneID string, name stri
 			return nil, err
 		}
 		for _, record := range page.ResourceRecordSets {
-			if aws.ToString(record.Name) == name && string(record.Type) == recordType {
+			if aws.ToString(record.Name) != name {
+				return matches, nil
+			}
+			if string(record.Type) == recordType {
 				matches = append(matches, record)
 			}
 		}
