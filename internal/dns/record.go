@@ -98,10 +98,11 @@ func NormalizeRecordValues(recordType string, values []string) ([]string, error)
 			}
 			normalized = append(normalized, value)
 		case "CAA":
-			if err := validateCAA(value); err != nil {
+			normalizedValue, err := normalizeCAA(value)
+			if err != nil {
 				return nil, err
 			}
-			normalized = append(normalized, value)
+			normalized = append(normalized, normalizedValue)
 		case "TXT":
 			normalized = append(normalized, quoteTXT(value))
 		}
@@ -115,8 +116,8 @@ func normalizeMX(value string) (string, error) {
 	if len(parts) != 2 {
 		return "", fmt.Errorf("MX record value %q must be '<priority> <exchange>'", value)
 	}
-	if _, err := strconv.Atoi(parts[0]); err != nil {
-		return "", fmt.Errorf("MX priority %q is not an integer", parts[0])
+	if err := validateUint16("MX priority", parts[0]); err != nil {
+		return "", err
 	}
 	exchange, err := NormalizeName(parts[1])
 	if err != nil {
@@ -131,8 +132,8 @@ func normalizeSRV(value string) (string, error) {
 		return "", fmt.Errorf("SRV record value %q must be '<priority> <weight> <port> <target>'", value)
 	}
 	for i, label := range []string{"priority", "weight", "port"} {
-		if _, err := strconv.Atoi(parts[i]); err != nil {
-			return "", fmt.Errorf("SRV %s %q is not an integer", label, parts[i])
+		if err := validateUint16("SRV "+label, parts[i]); err != nil {
+			return "", err
 		}
 	}
 	target, err := NormalizeName(parts[3])
@@ -142,23 +143,50 @@ func normalizeSRV(value string) (string, error) {
 	return strings.Join([]string{parts[0], parts[1], parts[2], target}, " "), nil
 }
 
-func validateCAA(value string) error {
-	parts := strings.Fields(value)
-	if len(parts) < 3 {
-		return fmt.Errorf("CAA record value %q must be '<flag> <tag> <value>'", value)
-	}
-	flag, err := strconv.Atoi(parts[0])
-	if err != nil || flag < 0 || flag > 255 {
-		return fmt.Errorf("CAA flag %q must be an integer between 0 and 255", parts[0])
+func validateUint16(label, value string) error {
+	n, err := strconv.Atoi(value)
+	if err != nil || n < 0 || n > 65535 {
+		return fmt.Errorf("%s %q must be an integer between 0 and 65535", label, value)
 	}
 	return nil
 }
 
-func quoteTXT(value string) string {
-	if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
+func normalizeCAA(value string) (string, error) {
+	parts := strings.Fields(value)
+	if len(parts) < 3 {
+		return "", fmt.Errorf("CAA record value %q must be '<flag> <tag> <value>'", value)
+	}
+	if flag, err := strconv.Atoi(parts[0]); err != nil || flag < 0 || flag > 255 {
+		return "", fmt.Errorf("CAA flag %q must be an integer between 0 and 255", parts[0])
+	}
+	caaValue := strings.Join(parts[2:], " ")
+	return parts[0] + " " + parts[1] + " " + quoteString(caaValue), nil
+}
+
+// quoteString wraps a single value in double quotes, escaping backslashes and
+// quotes. A value already wrapped in quotes is returned unchanged.
+func quoteString(value string) string {
+	if len(value) >= 2 && strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`) {
 		return value
 	}
 	value = strings.ReplaceAll(value, `\`, `\\`)
 	value = strings.ReplaceAll(value, `"`, `\"`)
 	return `"` + value + `"`
+}
+
+// quoteTXT formats a TXT value as one or more quoted character-strings. DNS
+// limits each character-string to 255 bytes, so longer values are split into
+// 255-byte chunks joined by spaces. A pre-quoted value is returned unchanged.
+func quoteTXT(value string) string {
+	if len(value) >= 2 && strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`) {
+		return value
+	}
+	const maxChunk = 255
+	chunks := make([]string, 0, len(value)/maxChunk+1)
+	for len(value) > maxChunk {
+		chunks = append(chunks, quoteString(value[:maxChunk]))
+		value = value[maxChunk:]
+	}
+	chunks = append(chunks, quoteString(value))
+	return strings.Join(chunks, " ")
 }

@@ -211,12 +211,12 @@ Record upserts currently support:
 | --- | --- |
 | `A` | IPv4 addresses |
 | `AAAA` | IPv6 addresses |
-| `CAA` | Certificate authority authorization records |
+| `CAA` | `<flag> <tag> <value>`; the value is quoted automatically |
 | `CNAME` | Canonical names |
-| `MX` | Mail exchange values in `<priority> <exchange>` format |
+| `MX` | Mail exchange values in `<priority> <exchange>` format (priority `0`–`65535`) |
 | `NS` | Name server records |
-| `SRV` | Service records in `<priority> <weight> <port> <target>` format |
-| `TXT` | Values are quoted automatically when needed |
+| `SRV` | Service records in `<priority> <weight> <port> <target>` format (numeric fields `0`–`65535`) |
+| `TXT` | Quoted automatically and split into 255-byte strings when needed |
 
 `records list` can filter any Route 53 record type returned by AWS, including records that `r53ctl` does not yet upsert.
 
