@@ -78,9 +78,23 @@ Every release publishes:
 - `.tar.gz` archives for Linux and macOS
 - `.zip` archives for Windows
 - `.deb`, `.rpm`, and `.apk` Linux packages
-- `checksums.txt`
+- `checksums.txt`, signed with [cosign](https://github.com/sigstore/cosign) (`checksums.txt.sig`, `checksums.txt.pem`)
 
 See <https://github.com/kespineira/r53ctl/releases>.
+
+Verify the checksums signature (keyless, GitHub OIDC):
+
+```sh
+cosign verify-blob \
+  --certificate checksums.txt.pem \
+  --signature checksums.txt.sig \
+  --certificate-identity-regexp '^https://github.com/kespineira/r53ctl/\.github/workflows/release\.yml@refs/tags/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  checksums.txt
+```
+
+The install script runs this check automatically when `cosign` is installed
+(set `R53CTL_SKIP_COSIGN=1` to bypass).
 
 ## Authentication
 

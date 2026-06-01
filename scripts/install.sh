@@ -73,6 +73,30 @@ checksums="$tmp_dir/checksums.txt"
 download "$base_url/$asset" "$archive"
 download "$base_url/checksums.txt" "$checksums"
 
+# Verify the checksums file's cosign signature when cosign is available. This
+# authenticates checksums.txt itself (the per-asset SHA-256 check below only
+# guards transport integrity). Set R53CTL_SKIP_COSIGN=1 to bypass.
+sig="$tmp_dir/checksums.txt.sig"
+cert="$tmp_dir/checksums.txt.pem"
+if [ "${R53CTL_SKIP_COSIGN:-0}" != "1" ] && command -v cosign >/dev/null 2>&1; then
+  if download "$base_url/checksums.txt.sig" "$sig" && download "$base_url/checksums.txt.pem" "$cert"; then
+    if cosign verify-blob \
+      --certificate "$cert" \
+      --signature "$sig" \
+      --certificate-identity-regexp "^https://github.com/$repo/\.github/workflows/release\.yml@refs/tags/" \
+      --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+      "$checksums" >/dev/null 2>&1; then
+      echo "verified checksums.txt signature with cosign"
+    else
+      echo "error: cosign signature verification failed for checksums.txt" >&2
+      echo "       set R53CTL_SKIP_COSIGN=1 to bypass (not recommended)" >&2
+      exit 1
+    fi
+  else
+    echo "note: no cosign signature published for this release; skipping signature check" >&2
+  fi
+fi
+
 expected="$(grep "  $asset\$" "$checksums" | awk '{print $1}')"
 if [ -z "$expected" ]; then
   echo "error: checksum for $asset was not found" >&2
