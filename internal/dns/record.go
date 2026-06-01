@@ -70,7 +70,7 @@ func NormalizeRecordValues(recordType string, values []string) ([]string, error)
 		case "A":
 			ip := net.ParseIP(value)
 			if ip == nil || ip.To4() == nil {
-				return nil, fmt.Errorf("A record value %q is not an IPv4 address", value)
+				return nil, fmt.Errorf("%q is not a valid IPv4 address for an A record", value)
 			}
 			normalized = append(normalized, value)
 		case "AAAA":
